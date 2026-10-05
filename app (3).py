@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 from PIL import Image
 import os
+from huggingface_hub import hf_hub_download
 
 # ============================================================
 # PAGE CONFIGURATION
