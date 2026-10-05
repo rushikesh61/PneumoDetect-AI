@@ -1,13 +1,10 @@
 
-
 import streamlit as st
 import tensorflow as tf
 import numpy as np
 import cv2
 from PIL import Image
 from huggingface_hub import hf_hub_download
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, roc_curve, auc
 
 
 # ============================================================
@@ -263,27 +260,6 @@ def load_pneumonia_model():
 
 model = load_pneumonia_model()
 
-# ============================================================
-# MODEL PERFORMANCE DATA
-# ============================================================
-
-TEST_ACCURACY = 89.10
-TEST_ROC_AUC = 94.78
-PNEUMONIA_PRECISION = 91.93
-PNEUMONIA_RECALL = 90.51
-PNEUMONIA_F1 = 91.21
-
-# Final DenseNet121 confusion matrix
-# Actual: NORMAL, PNEUMONIA
-# Predicted: NORMAL, PNEUMONIA
-CONFUSION_MATRIX = np.array([
-    [203, 31],
-    [37, 353]
-])
-
-# CNN baseline comparison
-CNN_ACCURACY = 69.87
-CNN_ROC_AUC = 86.33
 
 # ============================================================
 # GRAD-CAM
@@ -906,366 +882,67 @@ elif page == "🩻 Pneumonia Detection":
 # MODEL PERFORMANCE
 # ============================================================
 
-elif page == "Model Performance":
-
-    # ========================================================
-    # MODEL PERFORMANCE PAGE
-    # ========================================================
+elif page == "📊 Model Performance":
 
     st.html("""
-    <div class="page-hero">
-        <div class="hero-badge">● MODEL EVALUATION</div>
-        <h1>Model Performance</h1>
-        <p>
-            Comprehensive evaluation of the final DenseNet121
-            pneumonia classification model on the unseen test dataset.
-        </p>
+    <div class="section-title">
+        Model Performance
+    </div>
+
+    <div class="section-subtitle">
+        Final evaluation on 624 untouched test images.
     </div>
     """)
 
-    # --------------------------------------------------------
-    # TOP METRICS
-    # --------------------------------------------------------
-
-    st.html(f"""
-    <div class="metric-grid">
-
-        <div class="metric-card">
-            <div class="metric-label">TEST ACCURACY</div>
-            <div class="metric-value">{TEST_ACCURACY:.2f}%</div>
-            <div class="metric-sub">Final DenseNet121</div>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-label">ROC-AUC</div>
-            <div class="metric-value">{TEST_ROC_AUC:.2f}%</div>
-            <div class="metric-sub">Excellent discrimination</div>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-label">PNEUMONIA RECALL</div>
-            <div class="metric-value">{PNEUMONIA_RECALL:.2f}%</div>
-            <div class="metric-sub">Detection sensitivity</div>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-label">PNEUMONIA F1</div>
-            <div class="metric-value">{PNEUMONIA_F1:.2f}%</div>
-            <div class="metric-sub">Balanced performance</div>
-        </div>
-
-    </div>
-    """)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # --------------------------------------------------------
-    # CONFUSION MATRIX
-    # --------------------------------------------------------
-
-    st.markdown("## Confusion Matrix")
-
-    st.markdown(
-        """
-        The confusion matrix shows how the model classified the
-        unseen test images into Normal and Pneumonia categories.
-        """,
-        unsafe_allow_html=True
-    )
-
-    col1, col2 = st.columns([1.15, 1])
-
-    with col1:
-
-        fig, ax = plt.subplots(figsize=(7, 5))
-
-        im = ax.imshow(CONFUSION_MATRIX)
-
-        ax.set_title(
-            "DenseNet121 Confusion Matrix",
-            fontsize=15,
-            fontweight="bold",
-            pad=15
-        )
-
-        ax.set_xlabel("Predicted Label", fontsize=11)
-        ax.set_ylabel("Actual Label", fontsize=11)
-
-        ax.set_xticks([0, 1])
-        ax.set_yticks([0, 1])
-
-        ax.set_xticklabels(["NORMAL", "PNEUMONIA"])
-        ax.set_yticklabels(["NORMAL", "PNEUMONIA"])
-
-        for i in range(2):
-            for j in range(2):
-                ax.text(
-                    j,
-                    i,
-                    str(CONFUSION_MATRIX[i, j]),
-                    ha="center",
-                    va="center",
-                    fontsize=18,
-                    fontweight="bold"
-                )
-
-        plt.tight_layout()
-
-        st.pyplot(fig)
-
-        plt.close(fig)
-
-    with col2:
-
-        st.markdown(
-            """
-            ### Interpretation
-
-            **203** Normal X-rays were correctly classified as Normal.
-
-            **353** Pneumonia X-rays were correctly classified as Pneumonia.
-
-            **31** Normal images were incorrectly predicted as Pneumonia.
-
-            **37** Pneumonia images were incorrectly predicted as Normal.
-            """,
-            unsafe_allow_html=True
-        )
-
-        st.info(
-            "The model correctly classified 556 out of 624 unseen "
-            "test images."
-        )
-
-    # --------------------------------------------------------
-    # ROC CURVE
-    # --------------------------------------------------------
-
-    st.markdown("---")
-
-    st.markdown("## ROC Curve")
-
-    st.markdown(
-        """
-        ROC-AUC measures how effectively the model separates
-        Normal and Pneumonia chest X-ray images.
-        """,
-        unsafe_allow_html=True
-    )
-
-    # Approximate ROC curve based on the final measured AUC.
-    # This is a visualization of the reported AUC value.
-    fpr = np.array([
-        0.00,
-        0.01,
-        0.03,
-        0.06,
-        0.10,
-        0.15,
-        0.25,
-        0.40,
-        0.60,
-        1.00
-    ])
-
-    tpr = np.array([
-        0.00,
-        0.52,
-        0.70,
-        0.80,
-        0.86,
-        0.90,
-        0.94,
-        0.97,
-        0.99,
-        1.00
-    ])
-
-    col1, col2 = st.columns([1.2, 0.8])
-
-    with col1:
-
-        fig, ax = plt.subplots(figsize=(7, 5))
-
-        ax.plot(
-            fpr,
-            tpr,
-            linewidth=3,
-            label=f"DenseNet121 (AUC = {TEST_ROC_AUC / 100:.4f})"
-        )
-
-        ax.plot(
-            [0, 1],
-            [0, 1],
-            linestyle="--",
-            linewidth=1.5,
-            label="Random Classifier"
-        )
-
-        ax.set_xlabel("False Positive Rate")
-        ax.set_ylabel("True Positive Rate")
-
-        ax.set_title(
-            "Receiver Operating Characteristic",
-            fontsize=15,
-            fontweight="bold"
-        )
-
-        ax.legend(loc="lower right")
-        ax.grid(alpha=0.25)
-
-        plt.tight_layout()
-
-        st.pyplot(fig)
-
-        plt.close(fig)
-
-    with col2:
-
-        st.html(f"""
-        <div class="info-card">
-
-            <div class="info-card-title">
-                ROC-AUC Score
-            </div>
-
-            <div class="big-score">
-                {TEST_ROC_AUC:.2f}%
-            </div>
-
-            <p>
-                An AUC of 0.9478 indicates excellent ability
-                to distinguish between Normal and Pneumonia
-                chest X-ray images.
-            </p>
-
-        </div>
-        """)
-
-    # --------------------------------------------------------
-    # CLASSIFICATION REPORT
-    # --------------------------------------------------------
-
-    st.markdown("---")
-
-    st.markdown("## Classification Report")
-
-    report_col1, report_col2 = st.columns(2)
-
-    with report_col1:
-
-        st.markdown("### NORMAL")
-
-        normal_metrics = {
-            "Precision": 84.58,
-            "Recall": 86.75,
-            "F1-Score": 85.65
-        }
-
-        for metric, value in normal_metrics.items():
-
-            st.progress(
-                int(value),
-                text=f"{metric}: {value:.2f}%"
-            )
-
-    with report_col2:
-
-        st.markdown("### PNEUMONIA")
-
-        pneumonia_metrics = {
-            "Precision": 91.93,
-            "Recall": 90.51,
-            "F1-Score": 91.21
-        }
-
-        for metric, value in pneumonia_metrics.items():
-
-            st.progress(
-                int(value),
-                text=f"{metric}: {value:.2f}%"
-            )
-
-    # --------------------------------------------------------
-    # CNN VS DENSENET121
-    # --------------------------------------------------------
-
-    st.markdown("---")
-
-    st.markdown("## Baseline CNN vs DenseNet121")
-
-    comparison_data = {
-        "Metric": [
-            "Accuracy",
-            "ROC-AUC"
-        ],
-        "Custom CNN": [
-            f"{CNN_ACCURACY:.2f}%",
-            f"{CNN_ROC_AUC:.2f}"
-        ],
-        "DenseNet121": [
-            f"{TEST_ACCURACY:.2f}%",
-            f"{TEST_ROC_AUC / 100:.4f}"
-        ],
-        "Improvement": [
-            f"+{TEST_ACCURACY - CNN_ACCURACY:.2f}%",
-            f"+{TEST_ROC_AUC - CNN_ROC_AUC:.2f}%"
-        ]
+    metrics = {
+        "Accuracy": "89.10%",
+        "ROC-AUC": "94.78%",
+        "Normal F1": "85.65%",
+        "Pneumonia F1": "91.21%",
+        "Normal Recall": "86.75%",
+        "Pneumonia Recall": "90.51%"
     }
 
-    st.table(comparison_data)
+    cols = st.columns(3)
 
-    st.success(
-        f"DenseNet121 improved test accuracy by "
-        f"{TEST_ACCURACY - CNN_ACCURACY:.2f} percentage points "
-        f"over the custom CNN baseline."
-    )
+    for i, (name, value) in enumerate(
+        metrics.items()
+    ):
 
-    # --------------------------------------------------------
-    # FINAL MODEL SUMMARY
-    # --------------------------------------------------------
+        with cols[i % 3]:
 
-    st.markdown("---")
+            st.html(
+                f"""
+                <div class="metric-card"
+                     style="margin-bottom:18px;">
 
-    st.html("""
-    <div class="page-hero">
+                    <div class="metric-label">
+                        {name}
+                    </div>
 
-        <div class="hero-badge">● FINAL MODEL</div>
+                    <div class="metric-value">
+                        {value}
+                    </div>
 
-        <h2>DenseNet121 Transfer Learning</h2>
+                </div>
+                """
+            )
 
-        <p>
-            The final model uses ImageNet-pretrained DenseNet121
-            followed by fine-tuning on chest X-ray images.
-            The model achieved strong performance on the completely
-            unseen test dataset.
-        </p>
+    st.markdown("""
+    ### Model Architecture
 
-        <div style="margin-top:20px;">
+    **DenseNet121 + Transfer Learning + Fine-Tuning**
 
-            <b>Architecture:</b>
-            DenseNet121 + Global Average Pooling +
-            Dense Layers + Dropout
+    The model uses ImageNet-pretrained DenseNet121 as the
+    feature extractor and a custom classification head for
+    binary classification.
 
-            <br><br>
+    **Classes**
 
-            <b>Input:</b>
-            224 × 224 RGB Chest X-ray
-
-            <br><br>
-
-            <b>Classes:</b>
-            Normal / Pneumonia
-
-            <br><br>
-
-            <b>Explainability:</b>
-            Grad-CAM
-
-        </div>
-
-    </div>
+    - NORMAL
+    - PNEUMONIA
     """)
+
 
 # ============================================================
 # EXPLAINABLE AI
