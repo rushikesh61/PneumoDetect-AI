@@ -234,35 +234,46 @@ section[data-testid="stSidebar"] * {
 </style>
 """, unsafe_allow_html=True)
 
+# ============================================================
+# HUGGING FACE MODEL CONFIGURATION
+# ============================================================
+
+MODEL_REPO = "Rushikeshmhaske/pneumodetect-densenet121"
+MODEL_FILENAME = "pneumonia_densenet121_final.keras"
+
 
 # ============================================================
-# MODEL PATH
-# ============================================================
-
-MODEL_PATH = "pneumonia_densenet121_final.keras"
-
-
-# ============================================================
-# LOAD MODEL
+# DOWNLOAD & LOAD MODEL
 # ============================================================
 
 @st.cache_resource
 def load_pneumonia_model():
 
-    if not os.path.exists(MODEL_PATH):
-        st.error(
-            "Model file not found. "
-            "Please place pneumonia_densenet121_final.keras "
-            "in the same folder as app.py."
-        )
-        st.stop()
+    try:
 
-    return tf.keras.models.load_model(MODEL_PATH)
+        model_path = hf_hub_download(
+            repo_id=MODEL_REPO,
+            filename=MODEL_FILENAME
+        )
+
+        loaded_model = tf.keras.models.load_model(
+            model_path
+        )
+
+        return loaded_model
+
+    except Exception as e:
+
+        st.error(
+            "Unable to load the PneumoDetect AI model."
+        )
+
+        st.exception(e)
+
+        st.stop()
 
 
 model = load_pneumonia_model()
-
-
 # ============================================================
 # GRAD-CAM
 # ============================================================
