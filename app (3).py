@@ -260,6 +260,96 @@ def load_pneumonia_model():
 
 model = load_pneumonia_model()
 
+# ============================================================
+# CHEST X-RAY IMAGE VALIDATION
+# ============================================================
+
+def is_likely_chest_xray(image):
+    """
+    Basic validation to reject obvious non-X-ray images.
+
+    This is NOT a medical-grade X-ray detector.
+    It is an app-level safety filter for obvious invalid inputs.
+    """
+
+    # Convert PIL image to RGB
+    rgb = np.array(image.convert("RGB"))
+
+    # Convert to grayscale
+    gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+
+    # Resize for consistent analysis
+    gray = cv2.resize(gray, (224, 224))
+
+    # --------------------------------------------------------
+    # 1. Check image dimensions
+    # --------------------------------------------------------
+
+    width, height = image.size
+
+    if width < 150 or height < 150:
+        return False, "Image resolution is too low."
+
+    # --------------------------------------------------------
+    # 2. Check grayscale similarity
+    # Chest X-rays are generally grayscale.
+    # --------------------------------------------------------
+
+    channels = rgb.astype(np.float32)
+
+    r_mean = np.mean(channels[:, :, 0])
+    g_mean = np.mean(channels[:, :, 1])
+    b_mean = np.mean(channels[:, :, 2])
+
+    channel_difference = (
+        abs(r_mean - g_mean)
+        + abs(g_mean - b_mean)
+        + abs(r_mean - b_mean)
+    )
+
+    # Strongly colored image → probably not X-ray
+    if channel_difference > 45:
+        return False, "This does not appear to be a chest X-ray."
+
+    # --------------------------------------------------------
+    # 3. Check grayscale variation
+    # --------------------------------------------------------
+
+    std_value = np.std(gray)
+
+    if std_value < 12:
+        return False, "Image does not contain enough X-ray-like visual information."
+
+    # --------------------------------------------------------
+    # 4. Check edge structure
+    # --------------------------------------------------------
+
+    edges = cv2.Canny(gray, 50, 150)
+
+    edge_ratio = np.mean(edges > 0)
+
+    if edge_ratio < 0.005:
+        return False, "No sufficient medical image structure detected."
+
+    if edge_ratio > 0.45:
+        return False, "Image contains unusually high visual complexity."
+
+    # --------------------------------------------------------
+    # 5. Check central region brightness
+    # --------------------------------------------------------
+
+    center = gray[30:194, 30:194]
+
+    center_mean = np.mean(center)
+
+    if center_mean < 15 or center_mean > 245:
+        return False, "Image intensity is not suitable for X-ray analysis."
+
+    # --------------------------------------------------------
+    # Passed basic validation
+    # --------------------------------------------------------
+
+    return True, "Image passed the basic chest X-ray validation."
 
 # ============================================================
 # GRAD-CAM
@@ -723,6 +813,25 @@ elif page == "🩻 Pneumonia Detection":
             type="primary",
             use_container_width=True
         )
+        # ============================================================
+# VALIDATE IMAGE BEFORE MODEL PREDICTION
+# ============================================================
+
+is_valid, validation_message = is_likely_chest_xray(image)
+
+if not is_valid:
+
+    st.error("❌ Invalid Image")
+
+    st.warning(
+        "Please upload a clear chest X-ray image. "
+        "The uploaded image does not appear to be suitable "
+        "for pneumonia detection."
+    )
+
+    st.info(f"Validation: {validation_message}")
+
+    st.stop()
 
         if analyze:
 
