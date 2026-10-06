@@ -1,4 +1,3 @@
-
 import streamlit as st
 import tensorflow as tf
 import numpy as np
@@ -15,7 +14,7 @@ st.set_page_config(
     page_title="PneumoDetect AI",
     page_icon="🫁",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 
@@ -39,58 +38,56 @@ html, body, [class*="css"] {
         #f7fafc;
 }
 
-section[data-testid="stSidebar"] {
-    background: linear-gradient(
-        180deg,
-        #062c3d 0%,
-        #073b4c 50%,
-        #075e68 100%
-    );
-}
-
-section[data-testid="stSidebar"] * {
-    color: white !important;
-}
-
 .block-container {
-    padding-top: 2rem;
+    padding-top: 1.5rem;
     padding-bottom: 3rem;
     max-width: 1400px;
 }
 
-.logo-box {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 25px;
+
+/* =========================================================
+   TOP NAVBAR
+   ========================================================= */
+
+.top-navbar {
+    width: 100%;
+    padding: 18px 24px;
+    border-radius: 18px;
+
+    background: linear-gradient(
+        135deg,
+        #062c3d 0%,
+        #073b4c 55%,
+        #075e68 100%
+    );
+
+    box-shadow: 0 12px 30px rgba(7,59,76,0.15);
+    margin-bottom: 12px;
 }
 
-.logo-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #14b8a6, #0f766e);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 25px;
-    box-shadow: 0 8px 20px rgba(20,184,166,0.25);
-}
-
-.logo-title {
-    font-size: 20px;
+.nav-brand {
+    color: white;
+    font-size: 21px;
     font-weight: 800;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.4px;
 }
 
-.logo-subtitle {
-    font-size: 11px;
-    opacity: 0.75;
+.nav-subtitle {
+    color: rgba(255,255,255,0.72);
+    font-size: 10px;
+    margin-top: 3px;
+    letter-spacing: 0.8px;
 }
+
+
+/* =========================================================
+   HERO
+   ========================================================= */
 
 .hero {
     padding: 40px;
     border-radius: 24px;
+
     background:
         linear-gradient(
             135deg,
@@ -98,6 +95,7 @@ section[data-testid="stSidebar"] * {
             #075e68 55%,
             #0f766e 100%
         );
+
     color: white;
     box-shadow: 0 18px 45px rgba(7,59,76,0.15);
     margin-bottom: 28px;
@@ -107,8 +105,10 @@ section[data-testid="stSidebar"] * {
     display: inline-block;
     padding: 7px 13px;
     border-radius: 30px;
+
     background: rgba(255,255,255,0.12);
     border: 1px solid rgba(255,255,255,0.18);
+
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 16px;
@@ -129,18 +129,27 @@ section[data-testid="stSidebar"] * {
     margin-top: 16px;
 }
 
+
+/* =========================================================
+   METRIC CARDS
+   ========================================================= */
+
 .metric-card {
     background: white;
     padding: 22px;
     border-radius: 18px;
+
     border: 1px solid #e5edf0;
-    box-shadow: 0 8px 25px rgba(15,23,42,0.05);
+
+    box-shadow:
+        0 8px 25px rgba(15,23,42,0.05);
 }
 
 .metric-label {
     color: #64748b;
     font-size: 12px;
     font-weight: 600;
+
     text-transform: uppercase;
     letter-spacing: 0.7px;
 }
@@ -152,18 +161,27 @@ section[data-testid="stSidebar"] * {
     margin-top: 6px;
 }
 
+
+/* =========================================================
+   RESULT
+   ========================================================= */
+
 .result-card {
     padding: 28px;
     border-radius: 20px;
+
     background: white;
     border: 1px solid #e2e8f0;
-    box-shadow: 0 10px 30px rgba(15,23,42,0.06);
+
+    box-shadow:
+        0 10px 30px rgba(15,23,42,0.06);
 }
 
 .result-title {
     color: #64748b;
     font-size: 12px;
     font-weight: 700;
+
     letter-spacing: 1px;
     text-transform: uppercase;
 }
@@ -182,10 +200,16 @@ section[data-testid="stSidebar"] * {
     margin-top: 5px;
 }
 
+
+/* =========================================================
+   SECTION
+   ========================================================= */
+
 .section-title {
     color: #073b4c;
     font-size: 25px;
     font-weight: 800;
+
     margin-top: 30px;
     margin-bottom: 8px;
 }
@@ -196,23 +220,108 @@ section[data-testid="stSidebar"] * {
     margin-bottom: 20px;
 }
 
+
+/* =========================================================
+   DISCLAIMER
+   ========================================================= */
+
 .disclaimer {
     padding: 18px 20px;
     border-radius: 15px;
+
     background: #fff7ed;
     border: 1px solid #fed7aa;
+
     color: #7c2d12;
     font-size: 13px;
     line-height: 1.6;
 }
 
+
+/* =========================================================
+   INFO CARD
+   ========================================================= */
+
+.info-card {
+    padding: 28px;
+    border-radius: 18px;
+
+    background: white;
+    border: 1px solid #e2e8f0;
+
+    box-shadow:
+        0 8px 25px rgba(15,23,42,0.05);
+}
+
+.info-card-title {
+    color: #073b4c;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.big-score {
+    color: #075e68;
+    font-size: 42px;
+    font-weight: 800;
+    margin: 10px 0;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
 .footer {
     margin-top: 50px;
     padding-top: 20px;
+
     border-top: 1px solid #e2e8f0;
+
     text-align: center;
+
     color: #94a3b8;
     font-size: 12px;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.stButton > button {
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   FILE UPLOADER
+   ========================================================= */
+
+[data-testid="stFileUploader"] {
+    background: white;
+    border-radius: 15px;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .hero {
+        padding: 25px;
+    }
+
+    .hero h1 {
+        font-size: 30px;
+    }
+
+    .top-navbar {
+        padding: 15px;
+    }
+
 }
 
 </style>
@@ -260,96 +369,183 @@ def load_pneumonia_model():
 
 model = load_pneumonia_model()
 
+
 # ============================================================
 # CHEST X-RAY IMAGE VALIDATION
 # ============================================================
 
 def is_likely_chest_xray(image):
+
     """
-    Basic validation to reject obvious non-X-ray images.
+    Basic application-level validation.
 
-    This is NOT a medical-grade X-ray detector.
-    It is an app-level safety filter for obvious invalid inputs.
+    This filter is designed to reject obvious non-X-ray
+    images before sending them to the pneumonia model.
+
+    It is NOT a medical-grade X-ray detector.
     """
 
-    # Convert PIL image to RGB
-    rgb = np.array(image.convert("RGB"))
+    try:
 
-    # Convert to grayscale
-    gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+        # ----------------------------------------------------
+        # Convert image to RGB
+        # ----------------------------------------------------
 
-    # Resize for consistent analysis
-    gray = cv2.resize(gray, (224, 224))
+        rgb = np.array(
+            image.convert("RGB")
+        )
 
-    # --------------------------------------------------------
-    # 1. Check image dimensions
-    # --------------------------------------------------------
+        # ----------------------------------------------------
+        # Basic dimensions
+        # ----------------------------------------------------
 
-    width, height = image.size
+        width, height = image.size
 
-    if width < 150 or height < 150:
-        return False, "Image resolution is too low."
+        if width < 150 or height < 150:
 
-    # --------------------------------------------------------
-    # 2. Check grayscale similarity
-    # Chest X-rays are generally grayscale.
-    # --------------------------------------------------------
+            return (
+                False,
+                "Image resolution is too low."
+            )
 
-    channels = rgb.astype(np.float32)
+        # ----------------------------------------------------
+        # Convert to grayscale
+        # ----------------------------------------------------
 
-    r_mean = np.mean(channels[:, :, 0])
-    g_mean = np.mean(channels[:, :, 1])
-    b_mean = np.mean(channels[:, :, 2])
+        gray = cv2.cvtColor(
+            rgb,
+            cv2.COLOR_RGB2GRAY
+        )
 
-    channel_difference = (
-        abs(r_mean - g_mean)
-        + abs(g_mean - b_mean)
-        + abs(r_mean - b_mean)
-    )
+        gray = cv2.resize(
+            gray,
+            (224, 224)
+        )
 
-    # Strongly colored image → probably not X-ray
-    if channel_difference > 45:
-        return False, "This does not appear to be a chest X-ray."
+        # ----------------------------------------------------
+        # COLOR ANALYSIS
+        # ----------------------------------------------------
 
-    # --------------------------------------------------------
-    # 3. Check grayscale variation
-    # --------------------------------------------------------
+        channels = rgb.astype(
+            np.float32
+        )
 
-    std_value = np.std(gray)
+        r_mean = np.mean(
+            channels[:, :, 0]
+        )
 
-    if std_value < 12:
-        return False, "Image does not contain enough X-ray-like visual information."
+        g_mean = np.mean(
+            channels[:, :, 1]
+        )
 
-    # --------------------------------------------------------
-    # 4. Check edge structure
-    # --------------------------------------------------------
+        b_mean = np.mean(
+            channels[:, :, 2]
+        )
 
-    edges = cv2.Canny(gray, 50, 150)
+        channel_difference = (
+            abs(r_mean - g_mean)
+            +
+            abs(g_mean - b_mean)
+            +
+            abs(r_mean - b_mean)
+        )
 
-    edge_ratio = np.mean(edges > 0)
+        # Strong color difference
+        if channel_difference > 45:
 
-    if edge_ratio < 0.005:
-        return False, "No sufficient medical image structure detected."
+            return (
+                False,
+                "This image appears to be a colored photograph, "
+                "not a chest X-ray."
+            )
 
-    if edge_ratio > 0.45:
-        return False, "Image contains unusually high visual complexity."
+        # ----------------------------------------------------
+        # CONTRAST / VARIATION
+        # ----------------------------------------------------
 
-    # --------------------------------------------------------
-    # 5. Check central region brightness
-    # --------------------------------------------------------
+        std_value = np.std(
+            gray
+        )
 
-    center = gray[30:194, 30:194]
+        if std_value < 12:
 
-    center_mean = np.mean(center)
+            return (
+                False,
+                "The image does not contain enough visual "
+                "information for X-ray analysis."
+            )
 
-    if center_mean < 15 or center_mean > 245:
-        return False, "Image intensity is not suitable for X-ray analysis."
+        # ----------------------------------------------------
+        # EDGE ANALYSIS
+        # ----------------------------------------------------
 
-    # --------------------------------------------------------
-    # Passed basic validation
-    # --------------------------------------------------------
+        edges = cv2.Canny(
+            gray,
+            50,
+            150
+        )
 
-    return True, "Image passed the basic chest X-ray validation."
+        edge_ratio = np.mean(
+            edges > 0
+        )
+
+        if edge_ratio < 0.005:
+
+            return (
+                False,
+                "No sufficient image structure was detected."
+            )
+
+        if edge_ratio > 0.45:
+
+            return (
+                False,
+                "The image contains unusually high visual complexity."
+            )
+
+        # ----------------------------------------------------
+        # CENTER REGION
+        # ----------------------------------------------------
+
+        center = gray[
+            30:194,
+            30:194
+        ]
+
+        center_mean = np.mean(
+            center
+        )
+
+        if center_mean < 15:
+
+            return (
+                False,
+                "Image intensity is too dark for X-ray analysis."
+            )
+
+        if center_mean > 245:
+
+            return (
+                False,
+                "Image intensity is too bright for X-ray analysis."
+            )
+
+        # ----------------------------------------------------
+        # PASSED
+        # ----------------------------------------------------
+
+        return (
+            True,
+            "Image passed the basic chest X-ray validation."
+        )
+
+    except Exception:
+
+        return (
+            False,
+            "Unable to validate the uploaded image."
+        )
+
 
 # ============================================================
 # GRAD-CAM
@@ -400,12 +596,26 @@ def generate_gradcam(img_array):
             training=False
         )
 
-        x = global_pool(features)
-        x = dense_256(x)
-        x = batch_norm(x, training=False)
-        x = dense_128(x)
+        x = global_pool(
+            features
+        )
 
-        prediction = final_dense(x)
+        x = dense_256(
+            x
+        )
+
+        x = batch_norm(
+            x,
+            training=False
+        )
+
+        x = dense_128(
+            x
+        )
+
+        prediction = final_dense(
+            x
+        )
 
         class_score = prediction[:, 0]
 
@@ -420,6 +630,7 @@ def generate_gradcam(img_array):
     )
 
     conv_outputs = conv_outputs[0]
+
     pooled_grads = pooled_grads[0]
 
     heatmap = tf.reduce_sum(
@@ -451,7 +662,9 @@ def generate_gradcam(img_array):
 
 def preprocess_image(image):
 
-    image = image.convert("RGB")
+    image = image.convert(
+        "RGB"
+    )
 
     display_image = np.array(
         image
@@ -463,81 +676,136 @@ def preprocess_image(image):
 
     img_array = np.array(
         resized
-    ).astype("float32") / 255.0
+    ).astype(
+        "float32"
+    ) / 255.0
 
     img_array = np.expand_dims(
         img_array,
         axis=0
     )
 
-    return display_image, img_array
-
-
-# ============================================================
-# SIDEBAR
-# ============================================================
-
-with st.sidebar:
-
-    st.html("""
-    <div class="logo-box">
-
-        <div class="logo-icon">
-            🫁
-        </div>
-
-        <div>
-
-            <div class="logo-title">
-                PneumoDetect AI
-            </div>
-
-            <div class="logo-subtitle">
-                CHEST X-RAY INTELLIGENCE
-            </div>
-
-        </div>
-
-    </div>
-    """)
-
-    st.markdown("---")
-
-    page = st.radio(
-        "Navigation",
-        [
-            "🏠 Dashboard",
-            "🩻 Pneumonia Detection",
-            "📊 Model Performance",
-            "🔬 Explainable AI",
-            "ℹ️ About"
-        ]
+    return (
+        display_image,
+        img_array
     )
 
-    st.markdown("---")
 
-    st.html("""
-    <div>
+# ============================================================
+# TOP NAVIGATION BAR
+# ============================================================
 
-        <b>AI SYSTEM</b>
+st.markdown("""
+<div class="top-navbar">
 
-        <br><br>
-
-        DenseNet121<br>
-        Transfer Learning<br>
-        Fine-Tuned Model
-
-        <br><br>
-
-        <b>Classes</b>
-
-        <br><br>
-
-        • Normal<br>
-        • Pneumonia
-
+    <div class="nav-brand">
+        🫁 PneumoDetect AI
     </div>
-    """)
+
+    <div class="nav-subtitle">
+        CHEST X-RAY INTELLIGENCE · DENSENET121
+    </div>
+
+</div>
+""", unsafe_allow_html=True)
+
+
+# ============================================================
+# NAVIGATION BUTTONS
+# ============================================================
+
+nav1, nav2, nav3, nav4, nav5 = st.columns(
+    [1.2, 1.8, 1.7, 1.6, 1.1]
+)
+
+
+with nav1:
+
+    dashboard_btn = st.button(
+        "🏠 Dashboard",
+        use_container_width=True
+    )
+
+
+with nav2:
+
+    detection_btn = st.button(
+        "🩻 Detection",
+        use_container_width=True
+    )
+
+
+with nav3:
+
+    performance_btn = st.button(
+        "📊 Performance",
+        use_container_width=True
+    )
+
+
+with nav4:
+
+    explainable_btn = st.button(
+        "🔬 Explainable AI",
+        use_container_width=True
+    )
+
+
+with nav5:
+
+    about_btn = st.button(
+        "ℹ️ About",
+        use_container_width=True
+    )
+
+
+# ============================================================
+# PAGE STATE
+# ============================================================
+
+if "page" not in st.session_state:
+
+    st.session_state.page = (
+        "🏠 Dashboard"
+    )
+
+
+if dashboard_btn:
+
+    st.session_state.page = (
+        "🏠 Dashboard"
+    )
+
+
+if detection_btn:
+
+    st.session_state.page = (
+        "🩻 Pneumonia Detection"
+    )
+
+
+if performance_btn:
+
+    st.session_state.page = (
+        "📊 Model Performance"
+    )
+
+
+if explainable_btn:
+
+    st.session_state.page = (
+        "🔬 Explainable AI"
+    )
+
+
+if about_btn:
+
+    st.session_state.page = (
+        "ℹ️ About"
+    )
+
+
+page = st.session_state.page
 
 
 # ============================================================
@@ -568,6 +836,7 @@ if page == "🏠 Dashboard":
     </div>
     """)
 
+
     st.html("""
     <div class="section-title">
         Model Performance
@@ -578,7 +847,9 @@ if page == "🏠 Dashboard":
     </div>
     """)
 
+
     c1, c2, c3, c4 = st.columns(4)
+
 
     with c1:
 
@@ -596,6 +867,7 @@ if page == "🏠 Dashboard":
         </div>
         """)
 
+
     with c2:
 
         st.html("""
@@ -611,6 +883,7 @@ if page == "🏠 Dashboard":
 
         </div>
         """)
+
 
     with c3:
 
@@ -628,6 +901,7 @@ if page == "🏠 Dashboard":
         </div>
         """)
 
+
     with c4:
 
         st.html("""
@@ -644,13 +918,16 @@ if page == "🏠 Dashboard":
         </div>
         """)
 
+
     st.html("""
     <div class="section-title">
         How It Works
     </div>
     """)
 
+
     c1, c2, c3 = st.columns(3)
+
 
     with c1:
 
@@ -673,6 +950,7 @@ if page == "🏠 Dashboard":
         </div>
         """)
 
+
     with c2:
 
         st.html("""
@@ -693,6 +971,7 @@ if page == "🏠 Dashboard":
 
         </div>
         """)
+
 
     with c3:
 
@@ -742,7 +1021,9 @@ elif page == "🩻 Pneumonia Detection":
     </div>
     """)
 
+
     col1, col2 = st.columns(2)
+
 
     with col1:
 
@@ -762,6 +1043,7 @@ elif page == "🩻 Pneumonia Detection":
             help="Upload a clear chest X-ray image."
         )
 
+
     with col2:
 
         st.html("""
@@ -774,11 +1056,13 @@ elif page == "🩻 Pneumonia Detection":
             "Capture chest X-ray"
         )
 
+
     image_source = (
         uploaded_file
         if uploaded_file is not None
         else camera_file
     )
+
 
     if image_source:
 
@@ -786,9 +1070,11 @@ elif page == "🩻 Pneumonia Detection":
             image_source
         )
 
+
         display_image, img_array = preprocess_image(
             image
         )
+
 
         st.html("""
         <div class="section-title">
@@ -796,17 +1082,20 @@ elif page == "🩻 Pneumonia Detection":
         </div>
         """)
 
+
         preview_col1, preview_col2, preview_col3 = st.columns(
             [1, 2, 1]
         )
+
 
         with preview_col2:
 
             st.image(
                 display_image,
-                caption="Selected Chest X-Ray",
+                caption="Selected Image",
                 use_container_width=True
             )
+
 
         analyze = st.button(
             "🔍  ANALYZE X-RAY",
@@ -815,7 +1104,49 @@ elif page == "🩻 Pneumonia Detection":
         )
 
 
+        # ====================================================
+        # ANALYZE BUTTON
+        # ====================================================
+
         if analyze:
+
+            # ------------------------------------------------
+            # FIRST: VALIDATE IMAGE
+            # ------------------------------------------------
+
+            is_valid, validation_message = (
+                is_likely_chest_xray(
+                    image
+                )
+            )
+
+
+            # ------------------------------------------------
+            # INVALID IMAGE
+            # ------------------------------------------------
+
+            if not is_valid:
+
+                st.error(
+                    "❌ Invalid Image"
+                )
+
+                st.warning(
+                    "Please upload a clear chest X-ray image. "
+                    "The uploaded image does not appear to be "
+                    "suitable for pneumonia detection."
+                )
+
+                st.info(
+                    f"Validation: {validation_message}"
+                )
+
+                st.stop()
+
+
+            # ------------------------------------------------
+            # VALID IMAGE → MODEL
+            # ------------------------------------------------
 
             with st.spinner(
                 "Analyzing chest X-ray..."
@@ -826,21 +1157,34 @@ elif page == "🩻 Pneumonia Detection":
                     verbose=0
                 )[0][0]
 
+
                 if prediction >= 0.5:
 
-                    predicted_class = "PNEUMONIA"
+                    predicted_class = (
+                        "PNEUMONIA"
+                    )
 
                     confidence = prediction
 
                 else:
 
-                    predicted_class = "NORMAL"
+                    predicted_class = (
+                        "NORMAL"
+                    )
 
-                    confidence = 1 - prediction
+                    confidence = (
+                        1 - prediction
+                    )
+
 
                 heatmap = generate_gradcam(
                     img_array
                 )
+
+
+            # ------------------------------------------------
+            # RESULT
+            # ------------------------------------------------
 
             st.html("""
             <div class="section-title">
@@ -848,13 +1192,19 @@ elif page == "🩻 Pneumonia Detection":
             </div>
             """)
 
+
             if predicted_class == "PNEUMONIA":
 
-                result_class = "result-pneumonia"
+                result_class = (
+                    "result-pneumonia"
+                )
 
             else:
 
-                result_class = "result-normal"
+                result_class = (
+                    "result-normal"
+                )
+
 
             st.html(
                 f"""
@@ -882,15 +1232,20 @@ elif page == "🩻 Pneumonia Detection":
                 """
             )
 
+
             st.progress(
                 float(confidence)
             )
 
+
             # ------------------------------------------------
-            # GRAD-CAM VISUALIZATION
+            # GRAD-CAM
             # ------------------------------------------------
 
-            original = display_image.copy()
+            original = (
+                display_image.copy()
+            )
+
 
             heatmap_resized = cv2.resize(
                 heatmap,
@@ -900,19 +1255,23 @@ elif page == "🩻 Pneumonia Detection":
                 )
             )
 
+
             heatmap_uint8 = np.uint8(
                 255 * heatmap_resized
             )
+
 
             heatmap_color = cv2.applyColorMap(
                 heatmap_uint8,
                 cv2.COLORMAP_JET
             )
 
+
             heatmap_color = cv2.cvtColor(
                 heatmap_color,
                 cv2.COLOR_BGR2RGB
             )
+
 
             overlay = cv2.addWeighted(
                 original,
@@ -922,13 +1281,16 @@ elif page == "🩻 Pneumonia Detection":
                 0
             )
 
+
             st.html("""
             <div class="section-title">
                 Explainable AI — Grad-CAM
             </div>
             """)
 
+
             g1, g2, g3 = st.columns(3)
+
 
             with g1:
 
@@ -937,6 +1299,7 @@ elif page == "🩻 Pneumonia Detection":
                     caption="Original X-Ray",
                     use_container_width=True
                 )
+
 
             with g2:
 
@@ -947,6 +1310,7 @@ elif page == "🩻 Pneumonia Detection":
                     clamp=True
                 )
 
+
             with g3:
 
                 st.image(
@@ -954,6 +1318,7 @@ elif page == "🩻 Pneumonia Detection":
                     caption="Grad-CAM Overlay",
                     use_container_width=True
                 )
+
 
             st.html("""
             <div class="disclaimer">
@@ -985,16 +1350,26 @@ elif page == "📊 Model Performance":
     </div>
     """)
 
+
     metrics = {
+
         "Accuracy": "89.10%",
+
         "ROC-AUC": "94.78%",
+
         "Normal F1": "85.65%",
+
         "Pneumonia F1": "91.21%",
+
         "Normal Recall": "86.75%",
+
         "Pneumonia Recall": "90.51%"
+
     }
 
+
     cols = st.columns(3)
+
 
     for i, (name, value) in enumerate(
         metrics.items()
@@ -1018,6 +1393,7 @@ elif page == "📊 Model Performance":
                 </div>
                 """
             )
+
 
     st.markdown("""
     ### Model Architecture
@@ -1060,6 +1436,7 @@ elif page == "🔬 Explainable AI":
     </div>
     """)
 
+
     st.markdown("""
     ### What is Grad-CAM?
 
@@ -1071,6 +1448,7 @@ elif page == "🔬 Explainable AI":
     **Important:** The heatmap represents model attention and
     should not be interpreted as a clinical diagnosis.
     """)
+
 
     st.info(
         "Upload an X-ray from the Detection page to generate "
@@ -1103,12 +1481,13 @@ elif page == "ℹ️ About":
     </div>
     """)
 
+
     st.markdown("""
     ## Project Overview
 
     PneumoDetect AI is an academic deep learning project designed
-    to demonstrate how computer vision and transfer learning can
-    be applied to chest X-ray image classification.
+    to demonstrate how computer vision and transfer learning can be
+    applied to chest X-ray image classification.
 
     ### Technology Stack
 
@@ -1140,6 +1519,7 @@ elif page == "ℹ️ About":
 
     It is **not a clinical diagnostic system**.
     """)
+
 
     st.html("""
     <div class="disclaimer">
