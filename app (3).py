@@ -813,25 +813,7 @@ elif page == "🩻 Pneumonia Detection":
             type="primary",
             use_container_width=True
         )
-        # ============================================================
-# VALIDATE IMAGE BEFORE MODEL PREDICTION
-# ============================================================
 
-is_valid, validation_message = is_likely_chest_xray(image)
-
-if not is_valid:
-
-    st.error("❌ Invalid Image")
-
-    st.warning(
-        "Please upload a clear chest X-ray image. "
-        "The uploaded image does not appear to be suitable "
-        "for pneumonia detection."
-    )
-
-    st.info(f"Validation: {validation_message}")
-
-    st.stop()
 
         if analyze:
 
