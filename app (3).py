@@ -2,6 +2,7 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 import cv2
+
 from PIL import Image
 from huggingface_hub import hf_hub_download
 
@@ -14,364 +15,403 @@ st.set_page_config(
     page_title="PneumoDetect AI",
     page_icon="🫁",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 
 # ============================================================
 # CUSTOM CSS
+# Existing healthcare colors and structure preserved
 # ============================================================
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    /* ========================================================
+       GLOBAL
+       ======================================================== */
 
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-}
+    .main {
+        background-color: #f5f9fb;
+    }
 
-.stApp {
-    background:
-        radial-gradient(circle at 10% 10%, rgba(13,148,136,0.08), transparent 25%),
-        radial-gradient(circle at 90% 20%, rgba(14,116,144,0.07), transparent 25%),
-        #f7fafc;
-}
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+    }
 
-.block-container {
-    padding-top: 1.5rem;
-    padding-bottom: 3rem;
-    max-width: 1400px;
-}
+    /* ========================================================
+       SIDEBAR
+       ======================================================== */
 
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(
+            180deg,
+            #062c3d 0%,
+            #073b4c 50%,
+            #075e68 100%
+        );
+    }
 
-/* =========================================================
-   TOP NAVBAR
-   ========================================================= */
+    section[data-testid="stSidebar"] * {
+        color: white !important;
+    }
 
-.top-navbar {
-    width: 100%;
-    padding: 18px 24px;
-    border-radius: 18px;
+    section[data-testid="stSidebar"] .stRadio label {
+        font-size: 0.95rem;
+    }
 
-    background: linear-gradient(
-        135deg,
-        #062c3d 0%,
-        #073b4c 55%,
-        #075e68 100%
-    );
+    /* ========================================================
+       LOGO
+       ======================================================== */
 
-    box-shadow: 0 12px 30px rgba(7,59,76,0.15);
-    margin-bottom: 12px;
-}
+    .logo-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 5px 15px 5px;
+    }
 
-.nav-brand {
-    color: white;
-    font-size: 21px;
-    font-weight: 800;
-    letter-spacing: -0.4px;
-}
+    .logo-icon {
+        font-size: 2.2rem;
+    }
 
-.nav-subtitle {
-    color: rgba(255,255,255,0.72);
-    font-size: 10px;
-    margin-top: 3px;
-    letter-spacing: 0.8px;
-}
+    .logo-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: white;
+    }
 
+    .logo-subtitle {
+        font-size: 0.65rem;
+        letter-spacing: 1.2px;
+        color: #b8e5e8;
+        margin-top: 3px;
+    }
 
-/* =========================================================
-   HERO
-   ========================================================= */
+    /* ========================================================
+       HERO
+       ======================================================== */
 
-.hero {
-    padding: 40px;
-    border-radius: 24px;
-
-    background:
-        linear-gradient(
+    .hero-card {
+        background: linear-gradient(
             135deg,
-            #073b4c 0%,
-            #075e68 55%,
-            #0f766e 100%
+            #062c3d 0%,
+            #073b4c 55%,
+            #075e68 100%
         );
 
-    color: white;
-    box-shadow: 0 18px 45px rgba(7,59,76,0.15);
-    margin-bottom: 28px;
-}
+        padding: 32px;
+        border-radius: 22px;
+        color: white;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 25px rgba(7, 59, 76, 0.18);
+    }
 
-.hero-badge {
-    display: inline-block;
-    padding: 7px 13px;
-    border-radius: 30px;
+    .hero-title {
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
 
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.18);
+    .hero-subtitle {
+        font-size: 1rem;
+        color: #c8eef0;
+        line-height: 1.6;
+    }
 
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 16px;
-}
+    /* ========================================================
+       SECTION TITLES
+       ======================================================== */
 
-.hero h1 {
-    font-size: 42px;
-    line-height: 1.1;
-    margin: 0;
-    font-weight: 800;
-}
+    .section-title {
+        color: #073b4c;
+        font-size: 1.45rem;
+        font-weight: 750;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
 
-.hero p {
-    font-size: 16px;
-    opacity: 0.88;
-    max-width: 720px;
-    line-height: 1.7;
-    margin-top: 16px;
-}
+    .section-subtitle {
+        color: #52717b;
+        font-size: 0.95rem;
+        margin-bottom: 20px;
+    }
 
+    /* ========================================================
+       METRIC CARDS
+       ======================================================== */
 
-/* =========================================================
-   METRIC CARDS
-   ========================================================= */
+    .metric-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid #dcebef;
+        box-shadow: 0 4px 15px rgba(7, 59, 76, 0.07);
+        min-height: 125px;
+    }
 
-.metric-card {
-    background: white;
-    padding: 22px;
-    border-radius: 18px;
+    .metric-label {
+        color: #607d86;
+        font-size: 0.82rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
 
-    border: 1px solid #e5edf0;
+    .metric-value {
+        color: #073b4c;
+        font-size: 1.75rem;
+        font-weight: 800;
+    }
 
-    box-shadow:
-        0 8px 25px rgba(15,23,42,0.05);
-}
+    .metric-description {
+        color: #6f8b93;
+        font-size: 0.75rem;
+        margin-top: 5px;
+    }
 
-.metric-label {
-    color: #64748b;
-    font-size: 12px;
-    font-weight: 600;
+    /* ========================================================
+       INFO CARDS
+       ======================================================== */
 
-    text-transform: uppercase;
-    letter-spacing: 0.7px;
-}
+    .info-card {
+        background: white;
+        border: 1px solid #dcebef;
+        border-radius: 16px;
+        padding: 22px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(7, 59, 76, 0.05);
+    }
 
-.metric-value {
-    color: #073b4c;
-    font-size: 30px;
-    font-weight: 800;
-    margin-top: 6px;
-}
+    .info-title {
+        color: #073b4c;
+        font-weight: 750;
+        font-size: 1.05rem;
+        margin-bottom: 8px;
+    }
 
+    .info-text {
+        color: #58737c;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
 
-/* =========================================================
-   RESULT
-   ========================================================= */
+    /* ========================================================
+       RESULT CARDS
+       ======================================================== */
 
-.result-card {
-    padding: 28px;
-    border-radius: 20px;
-
-    background: white;
-    border: 1px solid #e2e8f0;
-
-    box-shadow:
-        0 10px 30px rgba(15,23,42,0.06);
-}
-
-.result-title {
-    color: #64748b;
-    font-size: 12px;
-    font-weight: 700;
-
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.result-pneumonia {
-    color: #dc2626;
-    font-size: 34px;
-    font-weight: 800;
-    margin-top: 5px;
-}
-
-.result-normal {
-    color: #059669;
-    font-size: 34px;
-    font-weight: 800;
-    margin-top: 5px;
-}
-
-
-/* =========================================================
-   SECTION
-   ========================================================= */
-
-.section-title {
-    color: #073b4c;
-    font-size: 25px;
-    font-weight: 800;
-
-    margin-top: 30px;
-    margin-bottom: 8px;
-}
-
-.section-subtitle {
-    color: #64748b;
-    font-size: 14px;
-    margin-bottom: 20px;
-}
-
-
-/* =========================================================
-   DISCLAIMER
-   ========================================================= */
-
-.disclaimer {
-    padding: 18px 20px;
-    border-radius: 15px;
-
-    background: #fff7ed;
-    border: 1px solid #fed7aa;
-
-    color: #7c2d12;
-    font-size: 13px;
-    line-height: 1.6;
-}
-
-
-/* =========================================================
-   INFO CARD
-   ========================================================= */
-
-.info-card {
-    padding: 28px;
-    border-radius: 18px;
-
-    background: white;
-    border: 1px solid #e2e8f0;
-
-    box-shadow:
-        0 8px 25px rgba(15,23,42,0.05);
-}
-
-.info-card-title {
-    color: #073b4c;
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.big-score {
-    color: #075e68;
-    font-size: 42px;
-    font-weight: 800;
-    margin: 10px 0;
-}
-
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-.footer {
-    margin-top: 50px;
-    padding-top: 20px;
-
-    border-top: 1px solid #e2e8f0;
-
-    text-align: center;
-
-    color: #94a3b8;
-    font-size: 12px;
-}
-
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-
-.stButton > button {
-    border-radius: 12px;
-    font-weight: 600;
-}
-
-
-/* =========================================================
-   FILE UPLOADER
-   ========================================================= */
-
-[data-testid="stFileUploader"] {
-    background: white;
-    border-radius: 15px;
-}
-
-
-/* =========================================================
-   MOBILE
-   ========================================================= */
-
-@media (max-width: 768px) {
-
-    .hero {
+    .result-card {
+        background: white;
+        border-radius: 18px;
         padding: 25px;
+        border: 1px solid #dcebef;
+        box-shadow: 0 5px 18px rgba(7, 59, 76, 0.08);
+        text-align: center;
+        margin-top: 15px;
     }
 
-    .hero h1 {
-        font-size: 30px;
+    .result-label {
+        color: #6a858d;
+        font-size: 0.85rem;
+        margin-bottom: 7px;
     }
 
-    .top-navbar {
-        padding: 15px;
+    .result-value {
+        color: #073b4c;
+        font-size: 2rem;
+        font-weight: 800;
     }
 
-}
+    /* ========================================================
+       DISCLAIMER
+       ======================================================== */
 
-</style>
-""", unsafe_allow_html=True)
+    .disclaimer {
+        background: #fff8e6;
+        border: 1px solid #f1d58b;
+        border-radius: 14px;
+        padding: 18px;
+        color: #725d25;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        margin-top: 25px;
+    }
+
+    /* ========================================================
+       FOOTER
+       ======================================================== */
+
+    .footer {
+        text-align: center;
+        color: #789099;
+        font-size: 0.78rem;
+        padding: 25px 0 10px 0;
+    }
+
+    /* ========================================================
+       BUTTONS
+       ======================================================== */
+
+    .stButton > button {
+        border-radius: 10px;
+        min-height: 42px;
+        font-weight: 650;
+    }
+
+    /* ========================================================
+       MOBILE RESPONSIVE
+       ======================================================== */
+
+    @media (max-width: 768px) {
+
+        .block-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            padding-top: 1rem !important;
+        }
+
+        .hero-card {
+            padding: 22px;
+            border-radius: 17px;
+        }
+
+        .hero-title {
+            font-size: 1.65rem;
+            line-height: 1.25;
+        }
+
+        .hero-subtitle {
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+        }
+
+        .metric-card {
+            margin-bottom: 12px;
+            min-height: auto;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+        }
+
+        .result-value {
+            font-size: 1.65rem;
+        }
+
+        .info-card {
+            padding: 17px;
+        }
+
+        .info-text {
+            font-size: 0.85rem;
+        }
+
+        [data-testid="stHorizontalBlock"] {
+            flex-wrap: wrap !important;
+        }
+
+        [data-testid="column"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+        }
+
+        .stButton > button {
+            width: 100% !important;
+        }
+
+        [data-testid="stFileUploader"] {
+            width: 100% !important;
+        }
+
+        [data-testid="stImage"] img {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+
+        .hero-card,
+        .metric-card,
+        .info-card,
+        .result-card {
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            overflow-wrap: break-word !important;
+            word-wrap: break-word !important;
+        }
+
+        h1 {
+            font-size: 1.8rem !important;
+        }
+
+        h2 {
+            font-size: 1.4rem !important;
+        }
+
+        h3 {
+            font-size: 1.15rem !important;
+        }
+
+        p {
+            line-height: 1.5 !important;
+        }
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ============================================================
-# MODEL CONFIGURATION
+# HUGGING FACE MODEL
 # ============================================================
 
 MODEL_REPO = "Rushikeshmhaske/pneumodetect-densenet121"
 MODEL_FILENAME = "pneumonia_densenet121_final.keras"
 
 
-# ============================================================
-# LOAD MODEL FROM HUGGING FACE
-# ============================================================
-
 @st.cache_resource
 def load_pneumonia_model():
 
-    try:
+    model_path = hf_hub_download(
+        repo_id=MODEL_REPO,
+        filename=MODEL_FILENAME
+    )
 
-        model_path = hf_hub_download(
-            repo_id=MODEL_REPO,
-            filename=MODEL_FILENAME
-        )
+    loaded_model = tf.keras.models.load_model(
+        model_path
+    )
 
-        loaded_model = tf.keras.models.load_model(
-            model_path
-        )
-
-        return loaded_model
-
-    except Exception as e:
-
-        st.error(
-            "Unable to load the PneumoDetect AI model."
-        )
-
-        st.exception(e)
-
-        st.stop()
-
-
-model = load_pneumonia_model()
+    return loaded_model
 
 
 # ============================================================
-# CHEST X-RAY IMAGE VALIDATION
+# LOAD MODEL
+# ============================================================
+
+try:
+
+    model = load_pneumonia_model()
+
+except Exception as e:
+
+    st.error(
+        "Unable to load the PneumoDetect AI model."
+    )
+
+    st.code(
+        str(e)
+    )
+
+    st.stop()
+
+
+# ============================================================
+# CHEST X-RAY VALIDATION
 # ============================================================
 
 def is_likely_chest_xray(image):
@@ -379,27 +419,26 @@ def is_likely_chest_xray(image):
     """
     Basic application-level validation.
 
-    This filter is designed to reject obvious non-X-ray
-    images before sending them to the pneumonia model.
+    This rejects obvious invalid images such as:
+    - strongly colored photographs
+    - extremely dark/bright images
+    - very low-information images
+    - unusually complex images
 
-    It is NOT a medical-grade X-ray detector.
+    This is NOT a medical-grade X-ray detector.
     """
 
     try:
-
-        # ----------------------------------------------------
-        # Convert image to RGB
-        # ----------------------------------------------------
 
         rgb = np.array(
             image.convert("RGB")
         )
 
-        # ----------------------------------------------------
-        # Basic dimensions
-        # ----------------------------------------------------
-
         width, height = image.size
+
+        # ----------------------------------------------------
+        # Resolution
+        # ----------------------------------------------------
 
         if width < 150 or height < 150:
 
@@ -409,7 +448,7 @@ def is_likely_chest_xray(image):
             )
 
         # ----------------------------------------------------
-        # Convert to grayscale
+        # Grayscale
         # ----------------------------------------------------
 
         gray = cv2.cvtColor(
@@ -423,7 +462,7 @@ def is_likely_chest_xray(image):
         )
 
         # ----------------------------------------------------
-        # COLOR ANALYSIS
+        # Color detection
         # ----------------------------------------------------
 
         channels = rgb.astype(
@@ -442,25 +481,22 @@ def is_likely_chest_xray(image):
             channels[:, :, 2]
         )
 
-        channel_difference = (
+        color_difference = (
             abs(r_mean - g_mean)
-            +
-            abs(g_mean - b_mean)
-            +
-            abs(r_mean - b_mean)
+            + abs(g_mean - b_mean)
+            + abs(r_mean - b_mean)
         )
 
-        # Strong color difference
-        if channel_difference > 45:
+        if color_difference > 45:
 
             return (
                 False,
-                "This image appears to be a colored photograph, "
-                "not a chest X-ray."
+                "The uploaded image appears to be "
+                "a colored photograph, not a chest X-ray."
             )
 
         # ----------------------------------------------------
-        # CONTRAST / VARIATION
+        # Contrast
         # ----------------------------------------------------
 
         std_value = np.std(
@@ -471,12 +507,12 @@ def is_likely_chest_xray(image):
 
             return (
                 False,
-                "The image does not contain enough visual "
-                "information for X-ray analysis."
+                "The image does not contain enough "
+                "visual information."
             )
 
         # ----------------------------------------------------
-        # EDGE ANALYSIS
+        # Edge structure
         # ----------------------------------------------------
 
         edges = cv2.Canny(
@@ -493,18 +529,19 @@ def is_likely_chest_xray(image):
 
             return (
                 False,
-                "No sufficient image structure was detected."
+                "Insufficient image structure detected."
             )
 
         if edge_ratio > 0.45:
 
             return (
                 False,
-                "The image contains unusually high visual complexity."
+                "The image contains unusually high "
+                "visual complexity."
             )
 
         # ----------------------------------------------------
-        # CENTER REGION
+        # Brightness
         # ----------------------------------------------------
 
         center = gray[
@@ -520,140 +557,27 @@ def is_likely_chest_xray(image):
 
             return (
                 False,
-                "Image intensity is too dark for X-ray analysis."
+                "The image is too dark."
             )
 
         if center_mean > 245:
 
             return (
                 False,
-                "Image intensity is too bright for X-ray analysis."
+                "The image is too bright."
             )
-
-        # ----------------------------------------------------
-        # PASSED
-        # ----------------------------------------------------
 
         return (
             True,
-            "Image passed the basic chest X-ray validation."
+            "Image passed basic chest X-ray validation."
         )
 
     except Exception:
 
         return (
             False,
-            "Unable to validate the uploaded image."
+            "Unable to validate the image."
         )
-
-
-# ============================================================
-# GRAD-CAM
-# ============================================================
-
-def generate_gradcam(img_array):
-
-    base_model = model.get_layer(
-        "densenet121"
-    )
-
-    global_pool = model.get_layer(
-        "global_average_pooling2d_2"
-    )
-
-    dense_256 = model.get_layer(
-        "dense_4"
-    )
-
-    batch_norm = model.get_layer(
-        "batch_normalization_8"
-    )
-
-    dense_128 = model.get_layer(
-        "dense_5"
-    )
-
-    final_dense = model.get_layer(
-        "dense_6"
-    )
-
-    last_conv = base_model.get_layer(
-        "conv5_block16_2_conv"
-    )
-
-    grad_model = tf.keras.Model(
-        inputs=base_model.input,
-        outputs=[
-            last_conv.output,
-            base_model.output
-        ]
-    )
-
-    with tf.GradientTape() as tape:
-
-        conv_outputs, features = grad_model(
-            img_array,
-            training=False
-        )
-
-        x = global_pool(
-            features
-        )
-
-        x = dense_256(
-            x
-        )
-
-        x = batch_norm(
-            x,
-            training=False
-        )
-
-        x = dense_128(
-            x
-        )
-
-        prediction = final_dense(
-            x
-        )
-
-        class_score = prediction[:, 0]
-
-    grads = tape.gradient(
-        class_score,
-        conv_outputs
-    )
-
-    pooled_grads = tf.reduce_mean(
-        grads,
-        axis=(1, 2)
-    )
-
-    conv_outputs = conv_outputs[0]
-
-    pooled_grads = pooled_grads[0]
-
-    heatmap = tf.reduce_sum(
-        conv_outputs * pooled_grads,
-        axis=-1
-    )
-
-    heatmap = tf.maximum(
-        heatmap,
-        0
-    )
-
-    max_value = tf.reduce_max(
-        heatmap
-    )
-
-    heatmap = tf.where(
-        max_value > 0,
-        heatmap / max_value,
-        heatmap
-    )
-
-    return heatmap.numpy()
 
 
 # ============================================================
@@ -666,146 +590,290 @@ def preprocess_image(image):
         "RGB"
     )
 
-    display_image = np.array(
-        image
-    )
-
-    resized = image.resize(
+    image = image.resize(
         (224, 224)
     )
 
-    img_array = np.array(
-        resized
+    image_array = np.array(
+        image
     ).astype(
-        "float32"
-    ) / 255.0
+        np.float32
+    )
 
-    img_array = np.expand_dims(
-        img_array,
+    image_array = image_array / 255.0
+
+    image_array = np.expand_dims(
+        image_array,
         axis=0
     )
 
-    return (
-        display_image,
-        img_array
-    )
+    return image_array
 
 
 # ============================================================
-# TOP NAVIGATION BAR
+# GRAD-CAM
 # ============================================================
 
-st.markdown("""
-<div class="top-navbar">
+def generate_gradcam(img_array):
 
-    <div class="nav-brand">
-        🫁 PneumoDetect AI
-    </div>
+    try:
 
-    <div class="nav-subtitle">
-        CHEST X-RAY INTELLIGENCE · DENSENET121
-    </div>
+        base_model = model.get_layer(
+            "densenet121"
+        )
 
-</div>
-""", unsafe_allow_html=True)
+        global_pool = model.get_layer(
+            "global_average_pooling2d_2"
+        )
+
+        dense_256 = model.get_layer(
+            "dense_4"
+        )
+
+        batch_norm = model.get_layer(
+            "batch_normalization_8"
+        )
+
+        dense_128 = model.get_layer(
+            "dense_5"
+        )
+
+        final_dense = model.get_layer(
+            "dense_6"
+        )
+
+        last_conv = base_model.get_layer(
+            "conv5_block16_2_conv"
+        )
+
+        grad_model = tf.keras.Model(
+            inputs=base_model.input,
+            outputs=[
+                last_conv.output,
+                base_model.output
+            ]
+        )
+
+        with tf.GradientTape() as tape:
+
+            conv_outputs, features = (
+                grad_model(
+                    img_array,
+                    training=False
+                )
+            )
+
+            x = global_pool(
+                features
+            )
+
+            x = dense_256(
+                x
+            )
+
+            x = batch_norm(
+                x,
+                training=False
+            )
+
+            x = dense_128(
+                x
+            )
+
+            x = final_dense(
+                x
+            )
+
+            prediction = x[:, 0]
+
+        grads = tape.gradient(
+            prediction,
+            conv_outputs
+        )
+
+        pooled_grads = tf.reduce_mean(
+            grads,
+            axis=(1, 2)
+        )
+
+        conv_outputs = conv_outputs[0]
+
+        pooled_grads = pooled_grads[0]
+
+        heatmap = tf.reduce_sum(
+            conv_outputs * pooled_grads,
+            axis=-1
+        )
+
+        heatmap = tf.maximum(
+            heatmap,
+            0
+        )
+
+        max_heatmap = tf.reduce_max(
+            heatmap
+        )
+
+        if float(max_heatmap) > 0:
+
+            heatmap = (
+                heatmap / max_heatmap
+            )
+
+        return (
+            heatmap.numpy(),
+            float(
+                prediction.numpy()[0]
+            )
+        )
+
+    except Exception:
+
+        return (
+            None,
+            None
+        )
 
 
 # ============================================================
-# NAVIGATION BUTTONS
+# GRAD-CAM OVERLAY
 # ============================================================
 
-nav1, nav2, nav3, nav4, nav5 = st.columns(
-    [1.2, 1.8, 1.7, 1.6, 1.1]
-)
+def create_gradcam_overlay(
+    image,
+    heatmap
+):
 
-
-with nav1:
-
-    dashboard_btn = st.button(
-        "🏠 Dashboard",
-        use_container_width=True
+    original = np.array(
+        image.convert("RGB")
     )
 
-
-with nav2:
-
-    detection_btn = st.button(
-        "🩻 Detection",
-        use_container_width=True
+    original = cv2.resize(
+        original,
+        (224, 224)
     )
 
-
-with nav3:
-
-    performance_btn = st.button(
-        "📊 Performance",
-        use_container_width=True
+    heatmap_uint8 = np.uint8(
+        255 * heatmap
     )
 
-
-with nav4:
-
-    explainable_btn = st.button(
-        "🔬 Explainable AI",
-        use_container_width=True
+    heatmap_color = cv2.applyColorMap(
+        heatmap_uint8,
+        cv2.COLORMAP_JET
     )
 
-
-with nav5:
-
-    about_btn = st.button(
-        "ℹ️ About",
-        use_container_width=True
+    heatmap_color = cv2.cvtColor(
+        heatmap_color,
+        cv2.COLOR_BGR2RGB
     )
+
+    overlay = cv2.addWeighted(
+        original,
+        0.6,
+        heatmap_color,
+        0.4,
+        0
+    )
+
+    return overlay
 
 
 # ============================================================
-# PAGE STATE
+# SIDEBAR
 # ============================================================
 
-if "page" not in st.session_state:
+with st.sidebar:
 
-    st.session_state.page = (
-        "🏠 Dashboard"
+    st.html(
+        """
+        <div class="logo-box">
+
+            <div class="logo-icon">
+                🫁
+            </div>
+
+            <div>
+
+                <div class="logo-title">
+                    PneumoDetect AI
+                </div>
+
+                <div class="logo-subtitle">
+                    CHEST X-RAY INTELLIGENCE
+                </div>
+
+            </div>
+
+        </div>
+        """
     )
 
+    st.markdown("---")
 
-if dashboard_btn:
-
-    st.session_state.page = (
-        "🏠 Dashboard"
+    page = st.radio(
+        "Navigation",
+        [
+            "🏠 Dashboard",
+            "🩻 Pneumonia Detection",
+            "📊 Model Performance",
+            "🔬 Explainable AI",
+            "ℹ️ About"
+        ]
     )
 
+    st.markdown("---")
 
-if detection_btn:
+    st.html(
+        """
+        <div style="
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+        ">
 
-    st.session_state.page = (
-        "🩻 Pneumonia Detection"
+            <div style="
+                font-size: 0.75rem;
+                color: #b8e5e8;
+                margin-bottom: 8px;
+            ">
+                AI SYSTEM
+            </div>
+
+            <div style="
+                font-size: 1rem;
+                font-weight: 700;
+                color: white;
+            ">
+                DenseNet121
+            </div>
+
+            <div style="
+                font-size: 0.75rem;
+                color: #c8eef0;
+                margin-top: 4px;
+            ">
+                Deep Learning Classification
+            </div>
+
+            <div style="
+                font-size: 0.75rem;
+                color: #c8eef0;
+                margin-top: 8px;
+            ">
+                Classes: 2
+            </div>
+
+            <div style="
+                font-size: 0.75rem;
+                color: #c8eef0;
+            ">
+                NORMAL / PNEUMONIA
+            </div>
+
+        </div>
+        """
     )
-
-
-if performance_btn:
-
-    st.session_state.page = (
-        "📊 Model Performance"
-    )
-
-
-if explainable_btn:
-
-    st.session_state.page = (
-        "🔬 Explainable AI"
-    )
-
-
-if about_btn:
-
-    st.session_state.page = (
-        "ℹ️ About"
-    )
-
-
-page = st.session_state.page
 
 
 # ============================================================
@@ -814,185 +882,210 @@ page = st.session_state.page
 
 if page == "🏠 Dashboard":
 
-    st.html("""
-    <div class="hero">
+    st.html(
+        """
+        <div class="hero-card">
 
-        <div class="hero-badge">
-            ● AI-POWERED HEALTHCARE SCREENING
-        </div>
-
-        <h1>
-            Intelligent Pneumonia<br>
-            Detection from Chest X-Rays
-        </h1>
-
-        <p>
-            PneumoDetect AI uses a fine-tuned DenseNet121 deep learning
-            model to analyze chest X-ray images and provide an
-            AI-assisted pneumonia screening result with explainable
-            Grad-CAM visualization.
-        </p>
-
-    </div>
-    """)
-
-
-    st.html("""
-    <div class="section-title">
-        Model Performance
-    </div>
-
-    <div class="section-subtitle">
-        Evaluated on an untouched test dataset.
-    </div>
-    """)
-
-
-    c1, c2, c3, c4 = st.columns(4)
-
-
-    with c1:
-
-        st.html("""
-        <div class="metric-card">
-
-            <div class="metric-label">
-                Test Accuracy
+            <div class="hero-title">
+                PneumoDetect AI
             </div>
 
-            <div class="metric-value">
-                89.10%
+            <div class="hero-subtitle">
+                AI-powered pneumonia detection from chest
+                X-ray images using Deep Learning and
+                DenseNet121 transfer learning.
             </div>
 
         </div>
-        """)
+        """
+    )
 
+    st.html(
+        """
+        <div class="section-title">
+            AI Model Overview
+        </div>
 
-    with c2:
+        <div class="section-subtitle">
+            A deep learning system designed to classify
+            chest X-ray images into Normal and Pneumonia.
+        </div>
+        """
+    )
 
-        st.html("""
-        <div class="metric-card">
+    col1, col2, col3, col4 = st.columns(4)
 
-            <div class="metric-label">
-                ROC-AUC
+    with col1:
+
+        st.html(
+            """
+            <div class="metric-card">
+
+                <div class="metric-label">
+                    TEST ACCURACY
+                </div>
+
+                <div class="metric-value">
+                    89.10%
+                </div>
+
+                <div class="metric-description">
+                    Unseen test dataset
+                </div>
+
+            </div>
+            """
+        )
+
+    with col2:
+
+        st.html(
+            """
+            <div class="metric-card">
+
+                <div class="metric-label">
+                    ROC-AUC
+                </div>
+
+                <div class="metric-value">
+                    94.78%
+                </div>
+
+                <div class="metric-description">
+                    Classification quality
+                </div>
+
+            </div>
+            """
+        )
+
+    with col3:
+
+        st.html(
+            """
+            <div class="metric-card">
+
+                <div class="metric-label">
+                    PNEUMONIA RECALL
+                </div>
+
+                <div class="metric-value">
+                    90.51%
+                </div>
+
+                <div class="metric-description">
+                    Positive class recall
+                </div>
+
+            </div>
+            """
+        )
+
+    with col4:
+
+        st.html(
+            """
+            <div class="metric-card">
+
+                <div class="metric-label">
+                    PNEUMONIA F1
+                </div>
+
+                <div class="metric-value">
+                    91.21%
+                </div>
+
+                <div class="metric-description">
+                    Precision-recall balance
+                </div>
+
+            </div>
+            """
+        )
+
+    st.markdown("")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.html(
+            """
+            <div class="info-card">
+
+                <div class="info-title">
+                    🧠 Deep Learning Model
+                </div>
+
+                <div class="info-text">
+                    PneumoDetect AI uses DenseNet121
+                    pretrained on ImageNet and fine-tuned
+                    for binary chest X-ray classification.
+                </div>
+
+            </div>
+            """
+        )
+
+    with col2:
+
+        st.html(
+            """
+            <div class="info-card">
+
+                <div class="info-title">
+                    🔬 Explainable AI
+                </div>
+
+                <div class="info-text">
+                    Grad-CAM highlights image regions that
+                    contributed to the model prediction,
+                    improving model interpretability.
+                </div>
+
+            </div>
+            """
+        )
+
+    st.html(
+        """
+        <div class="info-card">
+
+            <div class="info-title">
+                🩻 Supported Predictions
             </div>
 
-            <div class="metric-value">
-                94.78%
+            <div class="info-text">
+
+                <b>NORMAL</b> — No pneumonia pattern detected
+                by the model.
+
+                <br><br>
+
+                <b>PNEUMONIA</b> — Image contains visual
+                patterns associated with pneumonia according
+                to the trained model.
+
             </div>
 
         </div>
-        """)
+        """
+    )
 
+    st.html(
+        """
+        <div class="disclaimer">
 
-    with c3:
+            <b>⚠️ Medical Disclaimer</b><br><br>
 
-        st.html("""
-        <div class="metric-card">
-
-            <div class="metric-label">
-                Pneumonia Recall
-            </div>
-
-            <div class="metric-value">
-                90.51%
-            </div>
+            PneumoDetect AI is an educational and research
+            project. It is not a medical device and should
+            not be used as a substitute for professional
+            medical diagnosis.
 
         </div>
-        """)
-
-
-    with c4:
-
-        st.html("""
-        <div class="metric-card">
-
-            <div class="metric-label">
-                Pneumonia F1
-            </div>
-
-            <div class="metric-value">
-                91.21%
-            </div>
-
-        </div>
-        """)
-
-
-    st.html("""
-    <div class="section-title">
-        How It Works
-    </div>
-    """)
-
-
-    c1, c2, c3 = st.columns(3)
-
-
-    with c1:
-
-        st.html("""
-        <div class="metric-card">
-
-            <div class="metric-label">
-                01 · UPLOAD
-            </div>
-
-            <h3>
-                Upload X-Ray
-            </h3>
-
-            <p>
-                Upload a chest X-ray or capture an image
-                using your camera.
-            </p>
-
-        </div>
-        """)
-
-
-    with c2:
-
-        st.html("""
-        <div class="metric-card">
-
-            <div class="metric-label">
-                02 · ANALYZE
-            </div>
-
-            <h3>
-                Analyze
-            </h3>
-
-            <p>
-                DenseNet121 processes the X-ray
-                and predicts the class.
-            </p>
-
-        </div>
-        """)
-
-
-    with c3:
-
-        st.html("""
-        <div class="metric-card">
-
-            <div class="metric-label">
-                03 · EXPLAIN
-            </div>
-
-            <h3>
-                Explain
-            </h3>
-
-            <p>
-                Grad-CAM highlights image regions
-                that influenced the prediction.
-            </p>
-
-        </div>
-        """)
+        """
+    )
 
 
 # ============================================================
@@ -1001,40 +1094,59 @@ if page == "🏠 Dashboard":
 
 elif page == "🩻 Pneumonia Detection":
 
-    st.html("""
-    <div class="hero">
+    st.html(
+        """
+        <div class="hero-card">
 
-        <div class="hero-badge">
-            CHEST X-RAY ANALYSIS
+            <div class="hero-title">
+                🩻 Pneumonia Detection
+            </div>
+
+            <div class="hero-subtitle">
+                Upload a chest X-ray or use your device camera
+                to perform AI-based pneumonia classification.
+            </div>
+
         </div>
+        """
+    )
 
-        <h1>
-            AI Pneumonia Screening
-        </h1>
-
-        <p>
-            Upload a chest X-ray or capture one using your camera.
-            The AI model will analyze the image and provide an
-            explainable screening result.
-        </p>
-
-    </div>
-    """)
-
-
-    col1, col2 = st.columns(2)
-
-
-    with col1:
-
-        st.html("""
+    st.html(
+        """
         <div class="section-title">
-            Upload X-Ray
+            Select Image Source
         </div>
-        """)
+
+        <div class="section-subtitle">
+            Choose how you want to provide the chest X-ray.
+        </div>
+        """
+    )
+
+    # ========================================================
+    # IMPORTANT:
+    # Camera does NOT open automatically.
+    # ========================================================
+
+    input_method = st.radio(
+        "Image Source",
+        [
+            "📁 Upload Image",
+            "📷 Use Camera"
+        ],
+        horizontal=True
+    )
+
+    image = None
+
+    # ========================================================
+    # UPLOAD
+    # ========================================================
+
+    if input_method == "📁 Upload Image":
 
         uploaded_file = st.file_uploader(
-            "Choose a chest X-ray image",
+            "Upload Chest X-Ray Image",
             type=[
                 "jpg",
                 "jpeg",
@@ -1043,76 +1155,67 @@ elif page == "🩻 Pneumonia Detection":
             help="Upload a clear chest X-ray image."
         )
 
+        if uploaded_file is not None:
 
-    with col2:
+            image = Image.open(
+                uploaded_file
+            ).convert("RGB")
 
-        st.html("""
-        <div class="section-title">
-            Take Photo
-        </div>
-        """)
+    # ========================================================
+    # CAMERA
+    # ========================================================
 
-        camera_file = st.camera_input(
-            "Capture chest X-ray"
+    elif input_method == "📷 Use Camera":
+
+        st.info(
+            "Camera will be available after selecting "
+            "'Use Camera'."
         )
 
-
-    image_source = (
-        uploaded_file
-        if uploaded_file is not None
-        else camera_file
-    )
-
-
-    if image_source:
-
-        image = Image.open(
-            image_source
+        camera_image = st.camera_input(
+            "Take a picture of the chest X-ray"
         )
 
+        if camera_image is not None:
 
-        display_image, img_array = preprocess_image(
-            image
+            image = Image.open(
+                camera_image
+            ).convert("RGB")
+
+    # ========================================================
+    # IMAGE PREVIEW + ANALYSIS
+    # ========================================================
+
+    if image is not None:
+
+        st.markdown("")
+
+        st.html(
+            """
+            <div class="section-title">
+                Image Preview
+            </div>
+            """
         )
 
-
-        st.html("""
-        <div class="section-title">
-            Image Preview
-        </div>
-        """)
-
-
-        preview_col1, preview_col2, preview_col3 = st.columns(
-            [1, 2, 1]
-        )
-
-
-        with preview_col2:
-
-            st.image(
-                display_image,
-                caption="Selected Image",
-                use_container_width=True
-            )
-
-
-        analyze = st.button(
-            "🔍  ANALYZE X-RAY",
-            type="primary",
+        st.image(
+            image,
+            caption="Selected Chest X-Ray",
             use_container_width=True
         )
 
+        st.markdown("")
 
-        # ====================================================
-        # ANALYZE BUTTON
-        # ====================================================
+        analyze = st.button(
+            "🔍 Analyze Chest X-Ray",
+            use_container_width=True
+        )
 
         if analyze:
 
-            # ------------------------------------------------
-            # FIRST: VALIDATE IMAGE
-            # ------------------------------------------------
+            # =================================================
+            # STEP 1 — VALIDATE IMAGE
+            # =================================================
 
             is_valid, validation_message = (
                 is_likely_chest_xray(
@@ -1120,10 +1223,9 @@ elif page == "🩻 Pneumonia Detection":
                 )
             )
 
-
-            # ------------------------------------------------
-            # INVALID IMAGE
-            # ------------------------------------------------
+            # =================================================
+            # STEP 2 — INVALID IMAGE
+            # =================================================
 
             if not is_valid:
 
@@ -1143,10 +1245,17 @@ elif page == "🩻 Pneumonia Detection":
 
                 st.stop()
 
+            # =================================================
+            # STEP 3 — PREPROCESS
+            # =================================================
 
-            # ------------------------------------------------
-            # VALID IMAGE → MODEL
-            # ------------------------------------------------
+            img_array = preprocess_image(
+                image
+            )
+
+            # =================================================
+            # STEP 4 — MODEL PREDICTION
+            # =================================================
 
             with st.spinner(
                 "Analyzing chest X-ray..."
@@ -1157,14 +1266,15 @@ elif page == "🩻 Pneumonia Detection":
                     verbose=0
                 )[0][0]
 
-
                 if prediction >= 0.5:
 
                     predicted_class = (
                         "PNEUMONIA"
                     )
 
-                    confidence = prediction
+                    confidence = (
+                        prediction
+                    )
 
                 else:
 
@@ -1176,162 +1286,172 @@ elif page == "🩻 Pneumonia Detection":
                         1 - prediction
                     )
 
-
-                heatmap = generate_gradcam(
-                    img_array
-                )
-
-
-            # ------------------------------------------------
+            # =================================================
             # RESULT
-            # ------------------------------------------------
+            # =================================================
 
-            st.html("""
-            <div class="section-title">
-                AI Analysis Result
-            </div>
-            """)
-
-
-            if predicted_class == "PNEUMONIA":
-
-                result_class = (
-                    "result-pneumonia"
-                )
-
-            else:
-
-                result_class = (
-                    "result-normal"
-                )
-
+            st.markdown("")
 
             st.html(
-                f"""
-                <div class="result-card">
-
-                    <div class="result-title">
-                        AI SCREENING RESULT
-                    </div>
-
-                    <div class="{result_class}">
-                        {predicted_class}
-                    </div>
-
-                    <br>
-
-                    <div class="result-title">
-                        CONFIDENCE
-                    </div>
-
-                    <h2>
-                        {confidence * 100:.2f}%
-                    </h2>
-
+                """
+                <div class="section-title">
+                    AI Prediction
                 </div>
                 """
             )
 
-
-            st.progress(
-                float(confidence)
+            result_col1, result_col2 = (
+                st.columns(2)
             )
 
+            with result_col1:
 
-            # ------------------------------------------------
+                st.html(
+                    f"""
+                    <div class="result-card">
+
+                        <div class="result-label">
+                            PREDICTION
+                        </div>
+
+                        <div class="result-value">
+                            {predicted_class}
+                        </div>
+
+                    </div>
+                    """
+                )
+
+            with result_col2:
+
+                st.html(
+                    f"""
+                    <div class="result-card">
+
+                        <div class="result-label">
+                            CONFIDENCE
+                        </div>
+
+                        <div class="result-value">
+                            {confidence * 100:.2f}%
+                        </div>
+
+                    </div>
+                    """
+                )
+
+            # =================================================
+            # STREAMLIT STATUS
+            # =================================================
+
+            if predicted_class == "PNEUMONIA":
+
+                st.warning(
+                    "⚠️ Model prediction: PNEUMONIA"
+                )
+
+                st.write(
+                    "The model detected visual patterns "
+                    "associated with pneumonia."
+                )
+
+            else:
+
+                st.success(
+                    "✅ Model prediction: NORMAL"
+                )
+
+                st.write(
+                    "The model did not detect visual patterns "
+                    "associated with pneumonia."
+                )
+
+            # =================================================
             # GRAD-CAM
-            # ------------------------------------------------
+            # =================================================
 
-            original = (
-                display_image.copy()
-            )
+            with st.spinner(
+                "Generating Grad-CAM explanation..."
+            ):
 
-
-            heatmap_resized = cv2.resize(
-                heatmap,
-                (
-                    original.shape[1],
-                    original.shape[0]
-                )
-            )
-
-
-            heatmap_uint8 = np.uint8(
-                255 * heatmap_resized
-            )
-
-
-            heatmap_color = cv2.applyColorMap(
-                heatmap_uint8,
-                cv2.COLORMAP_JET
-            )
-
-
-            heatmap_color = cv2.cvtColor(
-                heatmap_color,
-                cv2.COLOR_BGR2RGB
-            )
-
-
-            overlay = cv2.addWeighted(
-                original,
-                0.60,
-                heatmap_color,
-                0.40,
-                0
-            )
-
-
-            st.html("""
-            <div class="section-title">
-                Explainable AI — Grad-CAM
-            </div>
-            """)
-
-
-            g1, g2, g3 = st.columns(3)
-
-
-            with g1:
-
-                st.image(
-                    original,
-                    caption="Original X-Ray",
-                    use_container_width=True
+                heatmap, gradcam_prediction = (
+                    generate_gradcam(
+                        img_array
+                    )
                 )
 
+            if heatmap is not None:
 
-            with g2:
-
-                st.image(
-                    heatmap_resized,
-                    caption="AI Attention Heatmap",
-                    use_container_width=True,
-                    clamp=True
+                overlay = (
+                    create_gradcam_overlay(
+                        image,
+                        heatmap
+                    )
                 )
 
+                st.markdown("")
 
-            with g3:
+                st.html(
+                    """
+                    <div class="section-title">
+                        🔬 Explainable AI — Grad-CAM
+                    </div>
 
-                st.image(
-                    overlay,
-                    caption="Grad-CAM Overlay",
-                    use_container_width=True
+                    <div class="section-subtitle">
+                        Highlighted regions show areas that
+                        contributed to the model prediction.
+                    </div>
+                    """
                 )
 
+                cam_col1, cam_col2 = (
+                    st.columns(2)
+                )
 
-            st.html("""
-            <div class="disclaimer">
+                with cam_col1:
 
-                ⚠️ <b>Medical Disclaimer:</b>
+                    st.image(
+                        image,
+                        caption="Original Chest X-Ray",
+                        use_container_width=True
+                    )
 
-                This application is an academic AI research prototype.
-                It is intended for educational and screening research only
-                and must not be used as a substitute for professional
-                medical diagnosis or clinical decision-making.
+                with cam_col2:
 
-            </div>
-            """)
+                    st.image(
+                        overlay,
+                        caption="Grad-CAM Heatmap Overlay",
+                        use_container_width=True
+                    )
+
+            else:
+
+                st.info(
+                    "Grad-CAM explanation could not be "
+                    "generated for this image."
+                )
+
+            # =================================================
+            # DISCLAIMER
+            # =================================================
+
+            st.html(
+                """
+                <div class="disclaimer">
+
+                    <b>⚠️ Important</b><br><br>
+
+                    This prediction is generated by an AI
+                    research model and is intended only for
+                    educational and demonstration purposes.
+
+                    It should not be considered a medical
+                    diagnosis. Always consult a qualified
+                    healthcare professional.
+
+                </div>
+                """
+            )
 
 
 # ============================================================
@@ -1340,75 +1460,210 @@ elif page == "🩻 Pneumonia Detection":
 
 elif page == "📊 Model Performance":
 
-    st.html("""
-    <div class="section-title">
-        Model Performance
-    </div>
+    st.html(
+        """
+        <div class="hero-card">
 
-    <div class="section-subtitle">
-        Final evaluation on 624 untouched test images.
-    </div>
-    """)
+            <div class="hero-title">
+                📊 Model Performance
+            </div>
 
+            <div class="hero-subtitle">
+                Performance of the fine-tuned DenseNet121
+                model on the untouched test dataset.
+            </div>
 
-    metrics = {
+        </div>
+        """
+    )
 
-        "Accuracy": "89.10%",
+    st.html(
+        """
+        <div class="section-title">
+            Final Test Performance
+        </div>
+        """
+    )
 
-        "ROC-AUC": "94.78%",
+    col1, col2, col3, col4 = st.columns(4)
 
-        "Normal F1": "85.65%",
+    with col1:
 
-        "Pneumonia F1": "91.21%",
+        st.html(
+            """
+            <div class="metric-card">
 
-        "Normal Recall": "86.75%",
+                <div class="metric-label">
+                    ACCURACY
+                </div>
 
-        "Pneumonia Recall": "90.51%"
+                <div class="metric-value">
+                    89.10%
+                </div>
 
+            </div>
+            """
+        )
+
+    with col2:
+
+        st.html(
+            """
+            <div class="metric-card">
+
+                <div class="metric-label">
+                    PRECISION
+                </div>
+
+                <div class="metric-value">
+                    91.93%
+                </div>
+
+            </div>
+            """
+        )
+
+    with col3:
+
+        st.html(
+            """
+            <div class="metric-card">
+
+                <div class="metric-label">
+                    RECALL
+                </div>
+
+                <div class="metric-value">
+                    90.51%
+                </div>
+
+            </div>
+            """
+        )
+
+    with col4:
+
+        st.html(
+            """
+            <div class="metric-card">
+
+                <div class="metric-label">
+                    ROC-AUC
+                </div>
+
+                <div class="metric-value">
+                    94.78%
+                </div>
+
+            </div>
+            """
+        )
+
+    st.markdown("")
+
+    st.html(
+        """
+        <div class="section-title">
+            Classification Report
+        </div>
+        """
+    )
+
+    performance_data = {
+        "Class": [
+            "NORMAL",
+            "PNEUMONIA",
+            "Macro Average",
+            "Weighted Average"
+        ],
+
+        "Precision": [
+            "84.58%",
+            "91.93%",
+            "88.26%",
+            "89.17%"
+        ],
+
+        "Recall": [
+            "86.75%",
+            "90.51%",
+            "88.63%",
+            "89.10%"
+        ],
+
+        "F1 Score": [
+            "85.65%",
+            "91.21%",
+            "88.43%",
+            "89.13%"
+        ]
     }
 
+    st.table(
+        performance_data
+    )
 
-    cols = st.columns(3)
+    st.markdown("")
 
+    st.html(
+        """
+        <div class="section-title">
+            Confusion Matrix
+        </div>
 
-    for i, (name, value) in enumerate(
-        metrics.items()
-    ):
+        <div class="info-card">
 
-        with cols[i % 3]:
+            <div class="info-title">
+                Test Set Results
+            </div>
 
-            st.html(
-                f"""
-                <div class="metric-card"
-                     style="margin-bottom:18px;">
+            <div class="info-text">
 
-                    <div class="metric-label">
-                        {name}
-                    </div>
+                <b>True Normal:</b> 203<br>
+                <b>False Pneumonia:</b> 31<br>
+                <b>False Normal:</b> 37<br>
+                <b>True Pneumonia:</b> 353
 
-                    <div class="metric-value">
-                        {value}
-                    </div>
+            </div>
 
-                </div>
-                """
-            )
+        </div>
+        """
+    )
 
+    st.html(
+        """
+        <div class="section-title">
+            Model Comparison
+        </div>
+        """
+    )
 
-    st.markdown("""
-    ### Model Architecture
+    comparison_data = {
+        "Model": [
+            "Custom CNN",
+            "DenseNet121 + Fine-Tuning"
+        ],
 
-    **DenseNet121 + Transfer Learning + Fine-Tuning**
+        "Test Accuracy": [
+            "69.87%",
+            "89.10%"
+        ],
 
-    The model uses ImageNet-pretrained DenseNet121 as the
-    feature extractor and a custom classification head for
-    binary classification.
+        "ROC-AUC": [
+            "86.33%",
+            "94.78%"
+        ]
+    }
 
-    **Classes**
+    st.table(
+        comparison_data
+    )
 
-    - NORMAL
-    - PNEUMONIA
-    """)
+    st.success(
+        "DenseNet121 improved test accuracy by "
+        "19.23 percentage points compared with "
+        "the custom CNN baseline."
+    )
 
 
 # ============================================================
@@ -1417,42 +1672,134 @@ elif page == "📊 Model Performance":
 
 elif page == "🔬 Explainable AI":
 
-    st.html("""
-    <div class="hero">
+    st.html(
+        """
+        <div class="hero-card">
 
-        <div class="hero-badge">
-            EXPLAINABLE ARTIFICIAL INTELLIGENCE
+            <div class="hero-title">
+                🔬 Explainable AI
+            </div>
+
+            <div class="hero-subtitle">
+                Understanding which image regions influence
+                the PneumoDetect AI prediction.
+            </div>
+
         </div>
+        """
+    )
 
-        <h1>
-            Understanding the AI Decision
-        </h1>
+    col1, col2 = st.columns(2)
 
-        <p>
-            Grad-CAM helps visualize the image regions that
-            contributed to the model's prediction.
-        </p>
+    with col1:
 
-    </div>
-    """)
+        st.html(
+            """
+            <div class="info-card">
 
+                <div class="info-title">
+                    What is Grad-CAM?
+                </div>
 
-    st.markdown("""
-    ### What is Grad-CAM?
+                <div class="info-text">
 
-    Grad-CAM (Gradient-weighted Class Activation Mapping) is
-    an explainability technique that creates a visual heatmap
-    showing which regions of an image had greater influence
-    on the model's prediction.
+                    Grad-CAM stands for Gradient-weighted
+                    Class Activation Mapping.
 
-    **Important:** The heatmap represents model attention and
-    should not be interpreted as a clinical diagnosis.
-    """)
+                    <br><br>
 
+                    It uses gradients from the deep learning
+                    model to identify image regions that are
+                    important for the final prediction.
 
-    st.info(
-        "Upload an X-ray from the Detection page to generate "
-        "a prediction and Grad-CAM visualization."
+                </div>
+
+            </div>
+            """
+        )
+
+    with col2:
+
+        st.html(
+            """
+            <div class="info-card">
+
+                <div class="info-title">
+                    Why is it useful?
+                </div>
+
+                <div class="info-text">
+
+                    Deep learning models can behave like
+                    black boxes.
+
+                    <br><br>
+
+                    Grad-CAM provides visual information about
+                    where the model is focusing, improving
+                    interpretability and transparency.
+
+                </div>
+
+            </div>
+            """
+        )
+
+    st.html(
+        """
+        <div class="info-card">
+
+            <div class="info-title">
+                DenseNet121 Feature Layer
+            </div>
+
+            <div class="info-text">
+
+                Grad-CAM is generated from the final convolutional
+                layer:
+
+                <br><br>
+
+                <b>conv5_block16_2_conv</b>
+
+                <br><br>
+
+                The generated heatmap is resized and overlaid
+                on the original chest X-ray.
+
+            </div>
+
+        </div>
+        """
+    )
+
+    st.html(
+        """
+        <div class="info-card">
+
+            <div class="info-title">
+                Interpretation
+            </div>
+
+            <div class="info-text">
+
+                🔴 Red / warm regions indicate areas with
+                stronger contribution to the prediction.
+
+                <br><br>
+
+                🔵 Blue / cool regions indicate areas with
+                relatively lower contribution.
+
+                <br><br>
+
+                Grad-CAM should be interpreted as an AI
+                explanation, not as a clinical diagnosis.
+
+            </div>
+
+        </div>
+        """
     )
 
 
@@ -1462,95 +1809,185 @@ elif page == "🔬 Explainable AI":
 
 elif page == "ℹ️ About":
 
-    st.html("""
-    <div class="hero">
+    st.html(
+        """
+        <div class="hero-card">
 
-        <div class="hero-badge">
-            ABOUT THE PROJECT
+            <div class="hero-title">
+                ℹ️ About PneumoDetect AI
+            </div>
+
+            <div class="hero-subtitle">
+                Deep Learning based chest X-ray
+                pneumonia classification system.
+            </div>
+
         </div>
+        """
+    )
 
-        <h1>
-            PneumoDetect AI
-        </h1>
+    st.html(
+        """
+        <div class="info-card">
 
-        <p>
-            AI-Based Pneumonia Detection from Chest X-Ray Images
-            using Deep Learning.
-        </p>
+            <div class="info-title">
+                🎯 Project Objective
+            </div>
 
-    </div>
-    """)
+            <div class="info-text">
 
+                The objective of PneumoDetect AI is to
+                demonstrate how Deep Learning and transfer
+                learning can be used for automated
+                classification of chest X-ray images.
 
-    st.markdown("""
-    ## Project Overview
+            </div>
 
-    PneumoDetect AI is an academic deep learning project designed
-    to demonstrate how computer vision and transfer learning can be
-    applied to chest X-ray image classification.
+        </div>
+        """
+    )
 
-    ### Technology Stack
+    col1, col2 = st.columns(2)
 
-    - Python
-    - TensorFlow / Keras
-    - DenseNet121
-    - OpenCV
-    - NumPy
-    - Streamlit
-    - Grad-CAM
+    with col1:
 
-    ### Model
+        st.html(
+            """
+            <div class="info-card">
 
-    The final model is a fine-tuned DenseNet121 trained for binary
-    classification of chest X-ray images into:
+                <div class="info-title">
+                    🧠 Model
+                </div>
 
-    **NORMAL** and **PNEUMONIA**
+                <div class="info-text">
 
-    ### Final Test Performance
+                    <b>Architecture:</b> DenseNet121<br><br>
 
-    **Accuracy:** 89.10%
+                    <b>Learning:</b> Transfer Learning +
+                    Fine-Tuning<br><br>
 
-    **ROC-AUC:** 94.78%
+                    <b>Input:</b> 224 × 224 RGB image<br><br>
 
-    ### Purpose
+                    <b>Output:</b> Binary classification
 
-    This system is intended for academic demonstration,
-    research and learning purposes.
+                </div>
 
-    It is **not a clinical diagnostic system**.
-    """)
+            </div>
+            """
+        )
 
+    with col2:
 
-    st.html("""
-    <div class="disclaimer">
+        st.html(
+            """
+            <div class="info-card">
 
-        ⚠️ <b>Medical Disclaimer:</b>
+                <div class="info-title">
+                    🩻 Classes
+                </div>
 
-        This application does not provide medical advice, diagnosis,
-        treatment or clinical recommendations. Always consult a
-        qualified healthcare professional for medical evaluation.
+                <div class="info-text">
 
-    </div>
-    """)
+                    <b>Class 0:</b> NORMAL<br><br>
+
+                    <b>Class 1:</b> PNEUMONIA<br><br>
+
+                    The model predicts the probability
+                    of pneumonia from the uploaded image.
+
+                </div>
+
+            </div>
+            """
+        )
+
+    st.html(
+        """
+        <div class="info-card">
+
+            <div class="info-title">
+                🛠️ Technology Stack
+            </div>
+
+            <div class="info-text">
+
+                <b>Python</b> — Programming Language<br><br>
+
+                <b>TensorFlow / Keras</b> — Deep Learning<br><br>
+
+                <b>DenseNet121</b> — Transfer Learning<br><br>
+
+                <b>OpenCV</b> — Image Processing<br><br>
+
+                <b>Streamlit</b> — Web Application<br><br>
+
+                <b>Hugging Face</b> — Model Hosting<br><br>
+
+                <b>Grad-CAM</b> — Explainable AI
+
+            </div>
+
+        </div>
+        """
+    )
+
+    st.html(
+        """
+        <div class="info-card">
+
+            <div class="info-title">
+                📈 Final Model Results
+            </div>
+
+            <div class="info-text">
+
+                Test Accuracy: <b>89.10%</b><br>
+                ROC-AUC: <b>94.78%</b><br>
+                Pneumonia Precision: <b>91.93%</b><br>
+                Pneumonia Recall: <b>90.51%</b><br>
+                Pneumonia F1 Score: <b>91.21%</b>
+
+            </div>
+
+        </div>
+        """
+    )
+
+    st.html(
+        """
+        <div class="disclaimer">
+
+            <b>⚠️ Medical Disclaimer</b><br><br>
+
+            PneumoDetect AI is a college-level Deep Learning
+            research and demonstration project.
+
+            <br><br>
+
+            It is not intended for clinical diagnosis,
+            treatment decisions, or emergency medical use.
+
+            <br><br>
+
+            Always consult a qualified healthcare professional
+            for medical interpretation of chest X-rays.
+
+        </div>
+        """
+    )
 
 
 # ============================================================
 # FOOTER
 # ============================================================
 
-st.html("""
-<div class="footer">
+st.html(
+    """
+    <div class="footer">
 
-    <b>PneumoDetect AI</b>
-    · Deep Learning Healthcare Research Project
+        PneumoDetect AI • DenseNet121 • Deep Learning
+        • Explainable AI
 
-    <br>
-
-    Built with TensorFlow, DenseNet121, Grad-CAM & Streamlit
-
-    <br><br>
-
-    © 2026 PneumoDetect AI · Academic Project
-
-</div>
-""")
+    </div>
+    """
+)
