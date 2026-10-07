@@ -331,6 +331,88 @@ st.markdown(
             color: #073b4c !important;
             line-height: 1.35 !important;
         }
+
+        /* ========================================================
+           MOBILE TEXT VISIBILITY - ALL OTHER SECTIONS
+           Dashboard + Detection + Performance +
+           Explainable AI + About
+           ======================================================== */
+
+        /* Main Streamlit markdown content */
+        section[data-testid="stMain"] .stMarkdown h1,
+        section[data-testid="stMain"] .stMarkdown h2,
+        section[data-testid="stMain"] .stMarkdown h3,
+        section[data-testid="stMain"] .stMarkdown h4,
+        section[data-testid="stMain"] .stMarkdown h5,
+        section[data-testid="stMain"] .stMarkdown h6 {
+            color: #073b4c !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            line-height: 1.35 !important;
+        }
+
+        section[data-testid="stMain"] .stMarkdown p,
+        section[data-testid="stMain"] .stMarkdown li {
+            color: #334155 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            line-height: 1.6 !important;
+        }
+
+        section[data-testid="stMain"] .stMarkdown strong,
+        section[data-testid="stMain"] .stMarkdown b {
+            color: #073b4c !important;
+            opacity: 1 !important;
+        }
+
+        /* Model Performance markdown table */
+        section[data-testid="stMain"] .stMarkdown table {
+            width: 100% !important;
+            color: #334155 !important;
+            border-collapse: collapse !important;
+            display: block !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+
+        section[data-testid="stMain"] .stMarkdown th,
+        section[data-testid="stMain"] .stMarkdown td {
+            color: #334155 !important;
+            white-space: nowrap !important;
+            padding: 8px !important;
+        }
+
+        section[data-testid="stMain"] .stMarkdown th {
+            color: #073b4c !important;
+            font-weight: 700 !important;
+        }
+
+        /* Detection page radio / uploader labels */
+        section[data-testid="stMain"] [data-testid="stRadio"] label,
+        section[data-testid="stMain"] [data-testid="stFileUploader"] label {
+            color: #334155 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        section[data-testid="stMain"] [data-testid="stRadio"] label p,
+        section[data-testid="stMain"] [data-testid="stFileUploader"] label p {
+            color: #334155 !important;
+        }
+
+        /* Detection page normal text */
+        section[data-testid="stMain"] .stAlert p,
+        section[data-testid="stMain"] [data-testid="stAlert"] p {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        /* Keep disclaimer readable */
+        section[data-testid="stMain"] .disclaimer,
+        section[data-testid="stMain"] .disclaimer b {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
     }
 
     </style>
