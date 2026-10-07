@@ -313,6 +313,24 @@ st.markdown(
             overflow-wrap: break-word !important;
             word-wrap: break-word !important;
         }
+
+        /* Fix invisible text inside white cards on mobile */
+        .metric-card h3,
+        .metric-card p {
+            color: #073b4c !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .metric-card p {
+            color: #64748b !important;
+            line-height: 1.6 !important;
+        }
+
+        .metric-card h3 {
+            color: #073b4c !important;
+            line-height: 1.35 !important;
+        }
     }
 
     </style>
